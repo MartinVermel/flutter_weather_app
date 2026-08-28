@@ -1,107 +1,150 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/flutter/flutter-original.svg" alt="Flutter" width="80" />
+
 # Flutter Weather App
 
-A production-quality weather dashboard built with Flutter, showcasing clean architecture, reactive state management with Riverpod, REST API integration, and micro-animations.
+**A production-quality weather dashboard built with Flutter**
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Riverpod](https://img.shields.io/badge/State-Riverpod-5AC8FA)](https://riverpod.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Real-time weather with animated icons, custom-painted gauges, and a city search — built to showcase clean architecture, reactive state management, and Flutter's animation APIs.
+
+</div>
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| Home — Sunny | Home — Rainy | City Search | Details |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/screenshots/home_sunny.png" width="180" alt="Home Sunny" /> | <img src="docs/screenshots/home_rain.png" width="180" alt="Home Rainy" /> | <img src="docs/screenshots/search.png" width="180" alt="City Search" /> | <img src="docs/screenshots/details.png" width="180" alt="Details" /> |
+
+> **Note:** Screenshots coming soon — run the app locally with your OpenWeatherMap API key to see it in action.
+
+</div>
+
+---
 
 ## Features
 
-- **Real-time weather data** via OpenWeatherMap API (current conditions + 5-day forecast)
-- **Dynamic gradient backgrounds** that change per weather condition (sunny = orange, rain = blue, storm = deep purple)
-- **Animated weather icons** using `flutter_animate`: spinning sun, shaking rain, drifting snow
-- **Animated temperature counter** — smooth number roll animation on unit switch (°C / °F)
-- **City search with debounce** — 500ms debounce to avoid flooding the API, in-memory search history
-- **5-day / hourly forecast** with horizontal scroll and staggered entry animations
-- **Details screen** with custom-painted circular arc gauges for humidity, wind speed, and pressure
-- **Custom page transitions** — DetailsScreen slides up from bottom via `SlideTransition`
+- 🌤 **Dynamic backgrounds** — gradient changes per weather condition (sunny → amber, rain → blue, storm → deep purple)
+- 🌀 **Animated icons** — spinning sun, pulsing rain, drifting snow using `flutter_animate`
+- 🌡 **Animated temperature counter** — smooth number roll on °C / °F toggle
+- 🔍 **Debounced city search** — 500ms debounce, in-memory search history
+- 📅 **5-day forecast** — horizontal scroll with staggered entry animations
+- 🎨 **Arc gauges** — humidity, wind speed and pressure drawn with `CustomPainter`
+- 🗺 **go_router navigation** — typed routes with custom `SlideTransition` page transitions
+
+---
 
 ## Architecture
 
-Feature-first with a clean data/domain/presentation split:
+Feature-first folder structure with a clean data / domain / presentation split:
 
 ```
 lib/
 ├── core/
-│   ├── constants/     # API base URL, keys, durations
-│   ├── router/        # Named route generation + custom transitions
-│   └── theme/         # Material 3 theme + weather gradient palette
+│   ├── constants/        # API base URL, endpoint paths, placeholder key
+│   ├── router/           # go_router setup + custom SlideTransition
+│   └── theme/            # Material 3 ColorScheme + weather gradient palette
 └── features/
     ├── weather/
     │   ├── data/
-    │   │   ├── models/        # WeatherModel, ForecastModel (manual fromJson)
-    │   │   ├── services/      # WeatherApiService (Dio)
-    │   │   └── repositories/  # IWeatherRepository interface + impl
-    │   ├── providers/         # Riverpod: WeatherNotifier, useMetricProvider
+    │   │   ├── models/   # WeatherModel, ForecastModel (manual fromJson)
+    │   │   ├── services/ # WeatherApiService (Dio)
+    │   │   └── repositories/ # WeatherRepository (abstracts service)
+    │   ├── providers/    # Riverpod AsyncNotifierProvider, settingsProvider
     │   └── presentation/
-    │       ├── screens/       # HomeScreen, DetailsScreen
-    │       └── widgets/       # AnimatedWeatherIcon, HourlyForecastCard, ...
+    │       ├── screens/  # HomeScreen, DetailsScreen
+    │       └── widgets/  # AnimatedWeatherIcon, HourlyForecastCard, ...
     └── search/
-        ├── providers/         # SearchNotifier (AsyncNotifier), SearchHistoryNotifier
-        └── presentation/      # SearchScreen
+        ├── providers/    # StateNotifierProvider for search history
+        └── presentation/ # SearchScreen
 ```
 
-## State Management — Riverpod
+**State flow:**
+```
+WeatherApiService  →  WeatherRepository  →  WeatherNotifier (AsyncNotifier)
+                                                    ↓
+                                             UI: .when(data, loading, error)
+```
 
-| Provider | Type | Purpose |
+---
+
+## Tech Stack
+
+| Package | Version | Role |
 |---|---|---|
-| `weatherProvider` | `AsyncNotifierProvider<WeatherNotifier, WeatherState>` | Current weather + forecast; auto loading/error states |
-| `searchProvider` | `AsyncNotifierProvider<SearchNotifier, List<WeatherModel>>` | City search results |
-| `searchHistoryProvider` | `StateNotifierProvider<SearchHistoryNotifier, List<String>>` | In-memory LRU search history |
-| `useMetricProvider` | `StateProvider<bool>` | °C / °F toggle |
+| `flutter_riverpod` | ^2.5.1 | Reactive state management, DI |
+| `flutter_animate` | ^4.5.0 | Declarative micro-animations |
+| `go_router` | ^14.2.7 | Declarative navigation with typed params |
+| `dio` | ^5.4.3 | HTTP client for OpenWeatherMap API |
+| `cached_network_image` | ^3.3.1 | Disk + memory image caching |
+| `google_fonts` | ^6.2.1 | Nunito font for UI |
 
-The UI pattern-matches on `AsyncValue`:
-```dart
-ref.watch(weatherProvider).when(
-  data: (state) => _buildWeatherScreen(state),
-  loading: () => CircularProgressIndicator(),
-  error: (e, _) => Text(e.toString()),
-);
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK `>=3.0.0`
+- A free [OpenWeatherMap API key](https://openweathermap.org/api) (takes ~1 minute to register)
+
+### Installation
+
+```bash
+git clone https://github.com/MartinVermel/flutter_weather_app.git
+cd flutter_weather_app
+flutter pub get
 ```
 
-## Key Technical Highlights
+### Configuration
 
-### CustomPainter Gauges (`_ArcGaugePainter`)
-The humidity/wind/pressure gauges in DetailsScreen are drawn with `CustomPainter.canvas.drawArc()`. The arc starts at 135° (7 o'clock) and sweeps 270°, leaving a gap at the bottom. The filled portion is animated from 0 to `progress` via `AnimationController` + `CurvedAnimation`.
+Open `lib/core/constants/api_constants.dart` and replace the placeholder key:
 
-### Animated Temperature Counter
-`_AnimatedTemperature` uses `SingleTickerProviderStateMixin` and an `AnimatedBuilder` to interpolate between the previous and new temperature values, creating a "counting" effect when the user toggles °C/°F.
-
-### Debounced Search
-Rather than adding a debounce package, the search is debounced with a plain `dart:async Timer` managed in `ConsumerStatefulWidget.initState/dispose`. This demonstrates lifecycle-aware side effect management.
-
-### flutter_animate Chaining
 ```dart
-child
-  .animate(onPlay: (c) => c.repeat())
-  .rotate(duration: 8.seconds, curve: Curves.linear)  // sun spin
-
-child
-  .animate(onPlay: (c) => c.repeat(reverse: true))
-  .moveY(begin: 0, end: 6, duration: 600.ms)  // rain drop
+class ApiConstants {
+  static const String apiKey = 'YOUR_API_KEY'; // ← replace this
+  static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
+}
 ```
 
-## Setup
+### Run
 
-1. Clone the repository
-2. Get your free API key at [openweathermap.org](https://openweathermap.org/api)
-3. Replace `YOUR_API_KEY` in `lib/core/constants/app_constants.dart`
-4. Run `flutter pub get`
-5. Run `flutter run`
+```bash
+flutter run
+```
 
-## Dependencies
+---
 
-| Package | Purpose |
-|---|---|
-| `flutter_riverpod` | Reactive state management |
-| `dio` | HTTP client with interceptors |
-| `flutter_animate` | Declarative micro-animations |
-| `google_fonts` | Nunito typography |
-| `cached_network_image` | Weather icon caching |
-| `geolocator` | Device location (future feature) |
-| `permission_handler` | Location permissions |
+## Key Implementation Notes
 
-## Screenshots
+### `AnimatedWeatherIcon` — stateless condition-driven animation
+Instead of a `StatefulWidget` per animation type, `flutter_animate`'s `.animate()` extension wraps any child widget. The `onPlay: (c) => c.repeat()` callback registers on the internal `AnimationController` before it starts — no manual `TickerProvider` or `dispose()` needed.
 
-_Add screenshots here after running the app_
+### `_ArcGaugePainter` — `CustomPainter` with `shouldRepaint`
+An `AnimationController` drives a `Tween<double>` from `0.0` to the target value. `CustomPainter` converts the current value to a `canvas.drawArc()` sweep angle. The `shouldRepaint` override ensures the painter only re-runs when the animation actually ticks — skipping it on unrelated rebuilds.
+
+### `WeatherNotifier` — `AsyncValue.guard()` + `Future.wait()`
+`AsyncValue.guard()` wraps any async call and auto-converts thrown exceptions into `AsyncError` — zero try/catch boilerplate. `Future.wait([getCurrentWeather(), getForecast()])` fires both API calls in parallel, halving total load time.
+
+---
+
+## Project Structure Decisions
+
+- **Why feature-first over layer-first?** Each feature can be extracted or deleted without touching other features. `weather/` and `search/` are independent vertical slices.
+- **Why Riverpod over Provider/BLoC?** `AsyncNotifierProvider` gives compile-safe, code-gen-free async state with built-in loading/error/data states. The DI chain (`service → repository → notifier`) is explicit and testable.
+- **Why manual `fromJson` instead of `freezed`?** Keeps the project dependency-light and makes the JSON mapping visible. `freezed` is worth adding once the model shape stabilizes.
+
+---
 
 ## License
 
-MIT
+MIT © [Martin Vermel](https://github.com/MartinVermel)
