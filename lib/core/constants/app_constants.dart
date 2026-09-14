@@ -3,7 +3,7 @@ class AppConstants {
 
   // OpenWeatherMap API
   static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
-  static const String apiKey = 'YOUR_API_KEY'; // Replace with your key
+  static const String apiKey = String.fromEnvironment('OPENWEATHER_API_KEY', defaultValue: 'YOUR_API_KEY');
   static const String iconBaseUrl = 'https://openweathermap.org/img/wn';
 
   // Endpoints
