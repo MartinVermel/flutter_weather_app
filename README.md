@@ -39,7 +39,7 @@ Real-time weather with animated icons, custom-painted gauges, and a city search 
 - 🔍 **Debounced city search** — 500ms debounce, in-memory search history
 - 📅 **5-day forecast** — horizontal scroll with staggered entry animations
 - 🎨 **Arc gauges** — humidity, wind speed and pressure drawn with `CustomPainter`
-- 🗺 **go_router navigation** — typed routes with custom `SlideTransition` page transitions
+- 🗺 **Named routes** — `onGenerateRoute` with a custom `SlideTransition` page transition
 
 ---
 
@@ -51,7 +51,7 @@ Feature-first folder structure with a clean data / domain / presentation split:
 lib/
 ├── core/
 │   ├── constants/        # API base URL, endpoint paths, placeholder key
-│   ├── router/           # go_router setup + custom SlideTransition
+│   ├── router/           # Named routes (onGenerateRoute) + custom SlideTransition
 │   └── theme/            # Material 3 ColorScheme + weather gradient palette
 └── features/
     ├── weather/
@@ -83,7 +83,6 @@ WeatherApiService  →  WeatherRepository  →  WeatherNotifier (AsyncNotifier)
 |---|---|---|
 | `flutter_riverpod` | ^2.5.1 | Reactive state management, DI |
 | `flutter_animate` | ^4.5.0 | Declarative micro-animations |
-| `go_router` | ^14.2.7 | Declarative navigation with typed params |
 | `dio` | ^5.4.3 | HTTP client for OpenWeatherMap API |
 | `cached_network_image` | ^3.3.1 | Disk + memory image caching |
 | `google_fonts` | ^6.2.1 | Nunito font for UI |
@@ -107,20 +106,48 @@ flutter pub get
 
 ### Configuration
 
-Open `lib/core/constants/api_constants.dart` and replace the placeholder key:
+Pass the key at build/run time, no file edit needed:
 
-```dart
-class ApiConstants {
-  static const String apiKey = 'YOUR_API_KEY'; // ← replace this
-  static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
-}
+```bash
+flutter run --dart-define=OPENWEATHER_API_KEY=your_key
 ```
+
+It is read in `lib/core/constants/app_constants.dart` via `String.fromEnvironment`.
 
 ### Run
 
 ```bash
-flutter run
+flutter run --dart-define=OPENWEATHER_API_KEY=your_key
 ```
+
+---
+
+## Docker
+
+The app ships as a Flutter **web** build served by nginx, using a multi-stage `Dockerfile` (Flutter SDK build stage, then a ~100 MB nginx:alpine runtime image).
+
+```bash
+OPENWEATHER_API_KEY=your_key docker compose up --build
+```
+Open http://localhost:8080.
+
+Or without Compose:
+
+```bash
+docker build --build-arg OPENWEATHER_API_KEY=your_key -t flutter_weather_app .
+docker run -p 8080:80 flutter_weather_app
+```
+
+`OPENWEATHER_API_KEY` is passed to `flutter build web --dart-define` at build time. Without it the app builds with a placeholder and the weather calls will fail. Note that any key compiled into a client-side bundle is visible to users, so use a restricted/free-tier key.
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Stage 1 builds `flutter build web --release`, stage 2 copies the output into nginx |
+| `nginx.conf` | SPA fallback to `index.html`, gzip, long-lived cache for assets, no-cache for the bootstrap files |
+| `docker-compose.yml` | One-command run on port 8080 |
+| `.dockerignore` | Keeps `.git`, `build/` and `.dart_tool/` out of the build context |
+
+Docker serves the web target only. For Android/iOS builds use `flutter run` as above.
 
 ---
 
