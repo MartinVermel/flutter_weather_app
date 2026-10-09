@@ -5,5 +5,5 @@ services:
       args:
         OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-YOUR_KEY_HERE}
     ports:
-      - "8080:80"
+      - "${HOST_PORT:-8101}:80"
     restart: unless-stopped

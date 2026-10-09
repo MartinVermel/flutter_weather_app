@@ -129,13 +129,13 @@ The app ships as a Flutter **web** build served by nginx, using a multi-stage `D
 ```bash
 OPENWEATHER_API_KEY=your_key docker compose up --build
 ```
-Open http://localhost:8080.
+Open http://localhost:8101 (each project uses its own port so they can run side by side; override with `HOST_PORT=9000 docker compose up --build`).
 
 Or without Compose:
 
 ```bash
 docker build --build-arg OPENWEATHER_API_KEY=your_key -t flutter_weather_app .
-docker run -p 8080:80 flutter_weather_app
+docker run -p 8101:80 flutter_weather_app
 ```
 
 `OPENWEATHER_API_KEY` is passed to `flutter build web --dart-define` at build time. Without it the app builds with a placeholder and the weather calls will fail. Note that any key compiled into a client-side bundle is visible to users, so use a restricted/free-tier key.
@@ -144,7 +144,7 @@ docker run -p 8080:80 flutter_weather_app
 |---|---|
 | `Dockerfile` | Stage 1 builds `flutter build web --release`, stage 2 copies the output into nginx |
 | `nginx.conf` | SPA fallback to `index.html`, gzip, long-lived cache for assets, no-cache for the bootstrap files |
-| `docker-compose.yml` | One-command run on port 8080 |
+| `docker-compose.yml` | One-command run on port 8101 |
 | `.dockerignore` | Keeps `.git`, `build/` and `.dart_tool/` out of the build context |
 
 Docker serves the web target only. For Android/iOS builds use `flutter run` as above.
