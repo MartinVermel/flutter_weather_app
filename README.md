@@ -62,7 +62,7 @@ lib/
     │   ├── providers/    # Riverpod AsyncNotifierProvider, settingsProvider
     │   └── presentation/
     │       ├── screens/  # HomeScreen, DetailsScreen
-    │       └── widgets/  # AnimatedWeatherIcon, HourlyForecastCard, ...
+    │       └── widgets/  # AnimatedWeatherIcon, HourlyForecastCard, DailyForecastTile
     └── search/
         ├── providers/    # StateNotifierProvider for search history
         └── presentation/ # SearchScreen
